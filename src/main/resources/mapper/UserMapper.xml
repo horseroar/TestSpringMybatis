@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="demo.mapper.UserMapper">
+
+
+
+
+    <insert id="insert" parameterType="demo.model.User" >
+    <!--开户别名后可以只使用类的默认名称指定parameterType-->
+    <!--<insert id="insert" parameterType="User">-->
+        insert into user (id, username, password)
+        values (#{id}, #{username}, #{password})
+    </insert>
+
+    <!--挑选符合条件的用户列表-->
+    <select id="findAll" resultMap="BaseResultMap">
+        select * from user
+    </select>
+    <select id="findByName" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select * from user where username=#{username,jdbcType=VARCHAR}
+    </select>
+    <select id="findByPwd" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select * from user where password=#{pwd}
+    </select>
+
+    <delete id="deleteUser" parameterType="java.lang.Integer">
+        delete from user where id=#{id}
+    </delete>
+
+    <select id="getUserCount" resultType="java.lang.Integer">
+        select count(*) from user
+    </select>
+
+    <!--此处将结果集放入map(一定要用具体类型，不能使用Map),如果不对统计列进行重命名，则放入的key将为count(*)和sum(id),key值不能用中文-->
+    <select id="getUserCountAndSumId" resultType="java.util.HashMap">
+        select count(*) as allCount,sum(id) as sumID from user
+    </select>
+
+    <resultMap id="BaseResultMap" type="demo.model.User" >
+        <id column="id" property="id"/>
+        <result column="username" property="username" jdbcType="VARCHAR" />
+        <result column="password" property="password" jdbcType="VARCHAR" />
+    </resultMap>
+
+
+    <!--mybatis中的批量操作-->
+    <insert id="batchInsert" parameterType="java.util.ArrayList" >
+        insert into user (id, username, password) values
+        <foreach collection="list" item="item" index="index" separator="," >
+            (#{item.id},#{item.username},#{item.password})
+        </foreach>
+    </insert>
+
+    <!--//取每条记录中的值去更新数据库(批量业务处理程序中常用)-->
+    <update id="batchUpdate" parameterType="java.util.ArrayList">
+        <foreach collection="list" item="item" index="index" open="" close="" separator=";">
+            update user
+            <set>
+                password=#{item.password}
+            </set>
+            where username = #{item.username}
+        </foreach>
+    </update>
+
+    <delete id="batchDelete" parameterType="java.util.ArrayList">
+        delete from user where id in
+        <foreach collection="list" index="index" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+
+</mapper>
